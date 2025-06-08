@@ -4,9 +4,54 @@ import io
 from PIL import Image
 import base64
 import os
+from transformers import pipeline
 
 app = Flask(__name__)
+summarizer = pipeline("summarization", model="facebook/bart-large-cnn")
+@app.route("/summarize-text", methods=["POST"])
+def summarize_text():
+    # Dosya veya metin var mı kontrol et
+    text = ""
+    if "text" in request.form and request.form["text"].strip():
+        text = request.form["text"]
+    elif "pdf" in request.files and request.files["pdf"]:
+        pdf_file = request.files["pdf"]
+        try:
+            doc = fitz.open(stream=pdf_file.read(), filetype="pdf")
+            for page in doc:
+                text += page.get_text()
+        except Exception as e:
+            return jsonify({"error": f"PDF okunamadı: {str(e)}"}), 400
+    else:
+        return jsonify({"error": "Metin veya PDF yükleyin"}), 400
 
+    # Çok uzun metinleri bölerek özetle
+    max_chunk_len = 2000  # daha uzun chunk (karakter cinsinden)
+    chunks = []
+    text = text.replace("\n", " ")
+    while len(text) > 0:
+        if len(text) > max_chunk_len:
+            cut_idx = text[:max_chunk_len].rfind('.')
+            if cut_idx == -1 or cut_idx < max_chunk_len // 2:
+                cut_idx = max_chunk_len  # cümle sonu yoksa düz böl
+            chunks.append(text[:cut_idx].strip())
+            text = text[cut_idx:].strip()
+        else:
+            chunks.append(text.strip())
+            break
+
+    # Her chunk için özet uzunluğunu otomatik seç
+    summary = ""
+    for chunk in chunks:
+        if len(chunk.split()) < 20:
+            summary += chunk + " "
+            continue
+        min_len = min(50, max(15, len(chunk.split()) // 4))
+        max_len = min(180, max(60, len(chunk.split()) // 2))
+        out = summarizer(chunk, max_length=max_len, min_length=min_len, do_sample=False)
+        summary += out[0]['summary_text'] + " "
+
+    return jsonify({"summary": summary.strip()})
 @app.route("/")
 def home():
     return "Multimodal Assistant Backend Çalışıyor!"
