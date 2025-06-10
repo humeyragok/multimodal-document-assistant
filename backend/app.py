@@ -13,6 +13,9 @@ from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.pdfbase import pdfmetrics
 from reportlab.lib.utils import simpleSplit
 import re
+from googletrans import Translator
+
+
 
 app = Flask(__name__)
 summarizer = pipeline("summarization", model="facebook/bart-large-cnn")
@@ -193,5 +196,29 @@ def audio_to_pdf():
 @app.route("/download-pdf/<filename>")
 def download_pdf(filename):
     return send_file(filename, as_attachment=True)
+
+# Görselden kısa açıklama (caption) için BLIP modeli
+captioner = pipeline("image-to-text", model="Salesforce/blip-image-captioning-base")
+translator = Translator()
+
+def cevir_en_tr(text):
+    return translator.translate(text, src="en", dest="tr").text
+
+@app.route("/image-to-short-caption", methods=["POST"])
+def image_to_short_caption():
+    if "image" not in request.files:
+        return jsonify({"error": "Resim dosyası gönderilmedi!"}), 400
+
+    image_file = request.files["image"]
+    image = Image.open(image_file).convert("RGB")
+    short_caption_en = captioner(image)[0]['generated_text']
+    short_caption_tr = cevir_en_tr(short_caption_en)
+
+    return jsonify({
+        "short_caption": short_caption_tr
+    })
+
+
+
 if __name__ == "__main__":
     app.run(debug=True)
