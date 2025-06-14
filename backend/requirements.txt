@@ -1,6 +1,6 @@
 Flask>=2.2
 requests>=2.31.0
-whisper @ git+https://github.com/openai/whisper.git
+openai-whisper
 reportlab>=4.0.4
 torch>=2.0.0
 numpy>=1.24
