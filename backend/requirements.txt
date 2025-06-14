@@ -1,0 +1,12 @@
+Flask>=2.2
+requests>=2.31.0
+whisper @ git+https://github.com/openai/whisper.git
+reportlab>=4.0.4
+torch>=2.0.0
+numpy>=1.24
+# Eğer whisper'ın ses işleme için ffmpeg gereksinimi varsa, sistemde ffmpeg kurulu olmalı (pip ile değil)
+# whisper'ın çalışması için Cython gerekebilir:
+Cython>=3.0
+
+# Flask ile template rendering için Jinja2 gereklidir, Flask zaten bağımlılık olarak getirir
+# PDF font desteği için DejaVuSans.ttf dosyasının projede olması gerekir
