@@ -1,6 +1,7 @@
 Flask
 requests>=2.31.0
 openai-whisper
+git+https://github.com/openai/whisper.git
 torch
 Cython>=3.0
 python-3.10.13
