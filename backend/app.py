@@ -206,8 +206,6 @@ def download_pdf():
     buffer = create_pdf_from_transcript(transcript)
     return send_file(buffer, as_attachment=True, download_name="transkript.pdf", mimetype="application/pdf")
 
-
 if __name__ == "__main__":
-    app.run(debug=True)
     port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port)
