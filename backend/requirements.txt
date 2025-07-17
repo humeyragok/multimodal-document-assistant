@@ -3,4 +3,6 @@ requests>=2.31.0
 openai-whisper
 torch
 Cython>=3.0
+gunicorn
+
 # diğer gerekli paketler
